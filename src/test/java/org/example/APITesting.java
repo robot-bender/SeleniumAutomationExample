@@ -179,5 +179,129 @@ public class APITesting {
                 .statusCode(200)
                 .body("id", equalTo(taskId))
                 .body("completed", equalTo(false));
+
+        // API should return an error when by using an ID that doesn't exist
+        given()
+                .when()
+                .delete(BASE_URL + "/tasks/non-existing-id")
+                .then()
+                .statusCode(404);
     }
+    @Test
+    void updateNonExistingTask() {
+
+        String nonExistingId = "this-task-does-not-exist";
+
+        given()
+                .contentType("application/json")
+                .body("""
+                    {
+                        "text": "Updated task"
+                    }
+                    """)
+                .when()
+                .post(BASE_URL + "/tasks/" + nonExistingId)
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void deleteNonExistingTask() {
+
+        String nonExistingId = "this-task-does-not-exist";
+
+        given()
+                .when()
+                .delete(BASE_URL + "/tasks/" + nonExistingId)
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void completeNonExistingTask() {
+
+        String nonExistingId = "this-task-does-not-exist";
+
+        given()
+                .when()
+                .post(BASE_URL + "/tasks/" + nonExistingId + "/complete")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void incompleteNonExistingTask() {
+
+        String nonExistingId = "this-task-does-not-exist";
+
+        given()
+                .when()
+                .post(BASE_URL + "/tasks/" + nonExistingId + "/incomplete")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void createTaskWithoutText() {
+
+        given()
+                .contentType("application/json")
+                .body("""
+                    {
+                    }
+                    """)
+                .when()
+                .post(BASE_URL + "/tasks")
+                .then()
+                .statusCode(422);
+    }
+
+    @Test
+    void createTaskWithEmptyText() {
+
+        given()
+                .contentType("application/json")
+                .body("""
+                    {
+                        "text": ""
+                    }
+                    """)
+                .when()
+                .post(BASE_URL + "/tasks")
+                .then()
+                .statusCode(422);
+    }
+
+    @Test
+    void updateTaskWithoutText() {
+
+        // Create a valid task first
+        String taskId =
+                given()
+                        .contentType("application/json")
+                        .body("""
+                            {
+                                "text": "Original task"
+                            }
+                            """)
+                        .when()
+                        .post(BASE_URL + "/tasks")
+                        .then()
+                        .statusCode(200)
+                        .extract()
+                        .path("id");
+
+        // Try to update without providing text
+        given()
+                .contentType("application/json")
+                .body("""
+                    {
+                    }
+                    """)
+                .when()
+                .post(BASE_URL + "/tasks/" + taskId)
+                .then()
+                .statusCode(422);
+    }
+
 }
