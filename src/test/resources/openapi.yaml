@@ -16,11 +16,15 @@ jobs:
 
     steps:
 
-      # Checkout Selenium automation project
       - name: Checkout test automation
         uses: actions/checkout@v4
 
-      # Java for Maven/Selenium tests
+      - name: Checkout Todo backend
+        uses: actions/checkout@v4
+        with:
+          repository: morosystems/todo-be
+          path: backend
+
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -28,7 +32,6 @@ jobs:
           java-version: '21'
           cache: maven
 
-      # Node.js for the Todo backend
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -36,24 +39,15 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
-      # Checkout the backend into ./backend
-      - name: Checkout Todo backend
-        uses: actions/checkout@v4
-        with:
-          repository: morosystems/todo-be
-          path: backend
-
-      # Install backend dependencies
       - name: Install backend dependencies
         working-directory: backend
         run: npm install
 
-      # Start backend on localhost:8080
       - name: Start backend
         working-directory: backend
-        run: npm start > backend.log 2>&1 &
+        run: |
+          npm start > backend.log 2>&1 &
 
-      # Wait until the API is available
       - name: Wait for backend
         run: |
           echo "Waiting for Todo API on localhost:8080..."
@@ -73,11 +67,9 @@ jobs:
           cat backend/backend.log
           exit 1
 
-      # Run API + UI tests
-      - name: Run all tests
+      - name: Run API and UI tests
         run: mvn test
 
-      # Save screenshots if a UI test fails
       - name: Upload screenshots
         if: failure()
         uses: actions/upload-artifact@v4
