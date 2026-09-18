@@ -201,7 +201,7 @@ public class APITest {
                 .when()
                 .post(BASE_URL + "/tasks/" + nonExistingId)
                 .then()
-                .statusCode(400);
+                .statusCode(404);
     }
 
     @Test
@@ -213,7 +213,7 @@ public class APITest {
                 .when()
                 .delete(BASE_URL + "/tasks/" + nonExistingId)
                 .then()
-                .statusCode(400);
+                .statusCode(404);
     }
 
     @Test
@@ -225,7 +225,7 @@ public class APITest {
                 .when()
                 .post(BASE_URL + "/tasks/" + nonExistingId + "/complete")
                 .then()
-                .statusCode(400);
+                .statusCode(404);
     }
 
     @Test
@@ -237,7 +237,7 @@ public class APITest {
                 .when()
                 .post(BASE_URL + "/tasks/" + nonExistingId + "/incomplete")
                 .then()
-                .statusCode(400);
+                .statusCode(404);
     }
 
     @Test
