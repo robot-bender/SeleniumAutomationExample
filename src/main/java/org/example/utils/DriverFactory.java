@@ -32,12 +32,13 @@ public class DriverFactory {
 
         ChromeOptions options = new ChromeOptions();
 
-        // Run Chrome in headless mode when tests are executed in CI
+        options.addArguments("--window-size=1920,1080");
+
+        // GitHub Actions / CI
         if (System.getenv("CI") != null) {
             options.addArguments("--headless=new");
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--window-size=1920,1080");
         }
 
         return new ChromeDriver(options);
@@ -47,7 +48,6 @@ public class DriverFactory {
 
         FirefoxOptions options = new FirefoxOptions();
 
-        // Run Firefox in headless mode when tests are executed in CI
         if (System.getenv("CI") != null) {
             options.addArguments("--headless");
             options.addArguments("--width=1920");
