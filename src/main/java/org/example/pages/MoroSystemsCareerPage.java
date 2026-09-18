@@ -8,6 +8,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.List;
 
 public class MoroSystemsCareerPage {
 
@@ -18,8 +19,16 @@ public class MoroSystemsCareerPage {
     private final By cookieNecessaryButton =
             By.xpath("//button[contains(normalize-space(.), 'Pouze nutné')]");
 
+//    private final By careerLink =
+//            By.xpath("//a[contains(normalize-space(.), 'Kariéra')]");
+
+//    private final By careerLink = By.xpath(
+//            "//a[contains(normalize-space(.), 'Kariéra') " +
+//                    "and not(ancestor-or-self::*[contains(@style, 'display: none')])]"
+//    );
+
     private final By careerLink =
-            By.xpath("//a[contains(normalize-space(.), 'Kariéra')]");
+            By.cssSelector("a[href*='/kariera']");
 
     private final By cityDropdown =
             By.cssSelector(".inp-custom-select__select");
@@ -29,22 +38,41 @@ public class MoroSystemsCareerPage {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     }
 
+//    public void acceptNecessaryCookies() {
+//        try {
+//            WebElement button = wait.until(
+//                    ExpectedConditions.elementToBeClickable(cookieNecessaryButton)
+//            );
+//
+//            button.click();
+//
+//            // Wait until the cookie button disappears.
+//            wait.until(
+//                    ExpectedConditions.invisibilityOfElementLocated(
+//                            cookieNecessaryButton
+//                    )
+//            );
+//
+//        } catch (Exception e) {
+//            // Cookie dialog was not displayed.
+//        }
+//    }
+
     public void acceptNecessaryCookies() {
         try {
-            WebElement button = wait.until(
-                    ExpectedConditions.elementToBeClickable(cookieNecessaryButton)
-            );
+            WebElement button = new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(ExpectedConditions.elementToBeClickable(
+                            cookieNecessaryButton
+                    ));
 
             button.click();
 
-            // Wait until the cookie button disappears.
-            wait.until(
-                    ExpectedConditions.invisibilityOfElementLocated(
+            new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(ExpectedConditions.invisibilityOfElementLocated(
                             cookieNecessaryButton
-                    )
-            );
+                    ));
 
-        } catch (Exception e) {
+        } catch (org.openqa.selenium.TimeoutException e) {
             // Cookie dialog was not displayed.
         }
     }
@@ -62,9 +90,21 @@ public class MoroSystemsCareerPage {
         WebElement link = wait.until(
                 ExpectedConditions.presenceOfElementLocated(careerLink)
         );
+        List<WebElement> links = driver.findElements(By.tagName("a"));
+
+        for (WebElement l : links) {
+            String text = l.getText().trim();
+            String href = l.getAttribute("href");
+
+            if (!text.isEmpty()) {
+                System.out.println("LINK: [" + text + "] -> " + href);
+            }
+        }
+
 
         // Scroll it into view. This helps when the header is outside
         // the currently visible viewport in headless CI Chrome.
+
         ((JavascriptExecutor) driver).executeScript(
                 "arguments[0].scrollIntoView({block: 'center'});",
                 link
