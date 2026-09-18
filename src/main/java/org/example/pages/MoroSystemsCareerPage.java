@@ -79,50 +79,38 @@ public class MoroSystemsCareerPage {
 
     public void openCareerPage() {
 
-        // Wait until the page has finished loading.
         wait.until(driver ->
                 ((JavascriptExecutor) driver)
                         .executeScript("return document.readyState")
                         .equals("complete")
         );
 
-        // Wait for the career link to exist.
         WebElement link = wait.until(
                 ExpectedConditions.presenceOfElementLocated(careerLink)
         );
-        List<WebElement> links = driver.findElements(By.tagName("a"));
-
-        for (WebElement l : links) {
-            String text = l.getText().trim();
-            String href = l.getAttribute("href");
-
-            if (!text.isEmpty()) {
-                System.out.println("LINK: [" + text + "] -> " + href);
-            }
-        }
-
-
-        // Scroll it into view. This helps when the header is outside
-        // the currently visible viewport in headless CI Chrome.
 
         ((JavascriptExecutor) driver).executeScript(
                 "arguments[0].scrollIntoView({block: 'center'});",
                 link
         );
 
-        // Wait until Selenium considers it clickable.
-        wait.until(
-                ExpectedConditions.elementToBeClickable(careerLink)
+        // Give the page/header a moment to finish any animations.
+        wait.until(driver ->
+                ((JavascriptExecutor) driver).executeScript(
+                        "return arguments[0].offsetParent !== null;",
+                        link
+                ).equals(true)
         );
 
-        // Use JavaScript click as a fallback for CI/headless Chrome.
+        // Click the exact element we already found.
         ((JavascriptExecutor) driver).executeScript(
                 "arguments[0].click();",
                 link
         );
 
-        wait.until(ExpectedConditions.urlContains("kariera"));
+        wait.until(ExpectedConditions.urlContains("/kariera"));
     }
+
 
     public void selectCity(String city) {
 
