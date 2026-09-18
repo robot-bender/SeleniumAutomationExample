@@ -1,265 +1,87 @@
-openapi: 3.0.0
+name: UI and API Tests
 
-info:
-  title: Morosystems Todo API
-  description: A simple backend for todo app
-  termsOfService: ""
-  version: 1.1.0
+on:
+  push:
+    branches:
+      - main
+      - master
 
-servers: []
+  pull_request:
 
-components:
-  schemas:
-    Task:
-      description: ""
-      required:
-        - id
-        - text
-        - completed
-        - createdDate
-      type: object
-      properties:
-        id:
-          description: Identification
-          type: string
-        text:
-          description: Content
-          type: string
-        completed:
-          description: Status
-          type: boolean
-        createdDate:
-          description: Date when task was created (Timestamp)
-          type: number
-        completedDate:
-          description: Date when task was completed (Timestamp)
-          type: number
+  workflow_dispatch:
 
-    CreateTask:
-      description: ""
-      required:
-        - text
-      type: object
-      properties:
-        text:
-          description: Content
-          type: string
+jobs:
+  test:
+    runs-on: ubuntu-latest
 
-    UpdateTask:
-      description: ""
-      required:
-        - text
-      type: object
-      properties:
-        text:
-          description: Content
-          type: string
+    steps:
 
-paths:
-  /tasks:
-    get:
-      deprecated: false
-      summary: Returns all tasks. Slow service, around 3 seconds
-      security: []
-      responses:
-        "200":
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Task"
-      parameters: []
-      tags:
-        - Tasks
+      # Checkout Selenium automation project
+      - name: Checkout test automation
+        uses: actions/checkout@v4
 
-    post:
-      deprecated: false
-      summary: Creates task with given text, then returns created task
-      security: []
-      responses:
-        "200":
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Task"
-        "422":
-          description: Bad request response
-          content:
-            application/json:
-              schema:
-                type: string
-      parameters: []
-      tags:
-        - Tasks
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateTask"
-        description: text
-        required: true
+      # Java for Maven/Selenium tests
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
 
-  /tasks/completed:
-    get:
-      deprecated: false
-      summary: Returns all completed tasks
-      security: []
-      responses:
-        "200":
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Task"
-      parameters: []
-      tags:
-        - Tasks
+      # Node.js for the Todo backend
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
 
-  /tasks/{id}:
-    post:
-      deprecated: false
-      summary: Updates text of given task, then returns modified task
-      security: []
-      responses:
-        "200":
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Task"
-        "422":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: string
-      parameters:
-        - name: id
-          in: path
-          description: ID of task
-          required: true
-          deprecated: false
-          schema:
-            type: string
-      tags:
-        - Tasks
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateTask"
-        description: text
-        required: true
+      # Checkout the backend into ./backend
+      - name: Checkout Todo backend
+        uses: actions/checkout@v4
+        with:
+          repository: morosystems/todo-be
+          path: backend
 
-    delete:
-      deprecated: false
-      summary: Deletes given task
-      security: []
-      responses:
-        "200":
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: string
-        "400":
-          description: ID of task was not found
-          content:
-            application/json:
-              schema:
-                type: string
-        "422":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: string
-      parameters:
-        - name: id
-          in: path
-          description: ID of task
-          required: true
-          deprecated: false
-          schema:
-            type: string
-      tags:
-        - Tasks
+      # Install backend dependencies
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install
 
-  /tasks/{id}/complete:
-    post:
-      deprecated: false
-      summary: Completes given task, then returns modified task
-      security: []
-      responses:
-        "200":
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Task"
-        "400":
-          description: ID of task was not found
-          content:
-            application/json:
-              schema:
-                type: string
-        "422":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: string
-      parameters:
-        - name: id
-          in: path
-          description: ID of task
-          required: true
-          deprecated: false
-          schema:
-            type: string
-      tags:
-        - Tasks
+      # Start backend on localhost:8080
+      - name: Start backend
+        working-directory: backend
+        run: npm start > backend.log 2>&1 &
 
-  /tasks/{id}/incomplete:
-    post:
-      deprecated: false
-      summary: Incompletes given task, then returns modified task
-      security: []
-      responses:
-        "200":
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Task"
-        "400":
-          description: ID of task was not found
-          content:
-            application/json:
-              schema:
-                type: string
-        "422":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: string
-      parameters:
-        - name: id
-          in: path
-          description: ID of task
-          required: true
-          deprecated: false
-          schema:
-            type: string
-      tags:
-        - Tasks
+      # Wait until the API is available
+      - name: Wait for backend
+        run: |
+          echo "Waiting for Todo API on localhost:8080..."
 
-tags:
-  - name: Tasks
-    description: ""
+          for i in {1..30}; do
+            if curl --silent --fail http://localhost:8080/tasks > /dev/null; then
+              echo "Backend is ready."
+              exit 0
+            fi
+
+            echo "Backend is not ready yet..."
+            sleep 2
+          done
+
+          echo "Backend failed to start."
+          echo "Backend log:"
+          cat backend/backend.log
+          exit 1
+
+      # Run API + UI tests
+      - name: Run all tests
+        run: mvn test
+
+      # Save screenshots if a UI test fails
+      - name: Upload screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screenshots
+          path: target/screenshots/
+          if-no-files-found: ignore
